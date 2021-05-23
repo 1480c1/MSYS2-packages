@@ -3,7 +3,7 @@
 pkgbase=brotli
 pkgname=('brotli' 'brotli-devel' 'python-brotli' 'brotli-testdata')
 pkgver=1.0.9
-pkgrel=2
+pkgrel=3
 pkgdesc='Brotli compression library'
 arch=('i686' 'x86_64')
 license=('MIT')
@@ -29,32 +29,28 @@ build() {
   cd "${srcdir}"/brotli-${pkgver}
   python setup.py build
 
-  cd "${srcdir}"/build
-  cmake \
+  /usr/bin/cmake \
+    -B "$srcdir/build" \
+    -S "$srcdir/brotli-$pkgver" \
     -DCMAKE_INSTALL_PREFIX="/usr" \
-    -DCMAKE_INSTALL_LIBDIR="/usr/lib" \
-    ../brotli-${pkgver}
-
-  make
+    -DCMAKE_INSTALL_LIBDIR="/usr/lib"
+  /usr/bin/cmake --build "$srcdir/build"
 }
 
 check() {
-  cd brotli-${pkgver}
-  make test
+  /usr/bin/cmake --build "$srcdir/build" --target test
 }
 
 package_brotli() {
-  cd build
-  make DESTDIR=${pkgdir} install
-  rm -rf ${pkgdir}/usr/{include,lib}
+  DESTDIR="${pkgdir}" /usr/bin/cmake --build "$srcdir/build" --target install
+  rm -rf "${pkgdir}/usr/"{include,lib}
   install -D -m644 "${srcdir}"/brotli-${pkgver}/LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
 }
 
 package_brotli-devel() {
   depends=('brotli')
-  cd build
-  make DESTDIR=${pkgdir} install
-  rm -rf ${pkgdir}/usr/bin
+  DESTDIR="${pkgdir}" /usr/bin/cmake --build "$srcdir/build" --target install
+  rm -rf "${pkgdir}/usr/bin"
 }
 
 package_python-brotli() {
